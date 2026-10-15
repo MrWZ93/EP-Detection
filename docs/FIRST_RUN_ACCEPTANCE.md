@@ -20,3 +20,9 @@ Mouse boundary editing, zoom, Yes/No persistence and process restart recovery ar
 ## Reproduce browser acceptance
 
 Install developer dependencies with npm ci and install Playwright Chromium. Generate a disposable fixture with `python tests/prepare_browser.py <test-directory>`. Set EP_BROWSER_FIXTURE to that directory and EP_PACKAGED_EXE to the packaged executable, then run `node tests/browser_acceptance.cjs`. The script launches only a loopback test server and a separate Chromium process, uses synthetic TDMS, and closes both afterwards. Never point it at live annotation state.
+
+## Windows native checks
+
+Windows release candidates are built on the standard windows-2022 GitHub-hosted runner with contents: read. Python dependencies are pinned with hashes; JavaScript dependencies use package-lock.json. Real packaged HTTP/browser/restart acceptance runs before the ZIP is produced. This does not verify Explorer double-click, SmartScreen, or the interactive Windows folder dialog.
+
+After extraction, double-click EP Desktop.exe inside the EP Desktop folder. Keep the whole folder together. Stop if Windows reports a security block; do not disable SmartScreen. Select a disposable test-data folder, cancel/reopen the directory dialog once, and quit/reopen using the launcher. Confirm folder and saved review recovery. No Python installation or database setup is required for reviewers.
