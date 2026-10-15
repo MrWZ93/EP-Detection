@@ -13,6 +13,9 @@ class HTTP(unittest.TestCase):
   o=self.d.open('f');p={'schema':'ep-dataset-profile-v1','sample_rate':50000,'basis':'Owner confirmed this batch','source_sha256':[o['sha256']]};validate_profile(p);self.d.store.set('dataset_profile',p);self.assertEqual(self.d.open('f')['metadata']['dataset_sample_rate'],50000);p['source_sha256']=['a'*64];self.d.store.set('dataset_profile',p);self.assertNotIn('dataset_sample_rate',self.d.open('f')['metadata'])
  def test_logout_returns_separate_preview_identity(self):
   self.d.store.set('last_account',None);self.assertTrue(self.d.owner().startswith('local:'))
+ def test_private_sidecar_autodiscovery(self):
+  import json
+  o=self.d.open('f');profile={'schema':'ep-dataset-profile-v1','sample_rate':50000,'basis':'Synthetic coordinator confirmation','source_sha256':[o['sha256']]};(self.root/'ep-dataset-profile.json').write_text(json.dumps(profile));self.d.discover_profile(self.root);self.assertEqual(self.d.open('f')['metadata']['dataset_sample_rate'],50000)
  def test_guard(self):
   self.assertEqual(self.c.get('/api/status').status_code,403);self.assertEqual(self.c.get('/api/status',headers=self.headers).status_code,200);self.assertEqual(self.c.get('/api/status',headers=self.headers|{'Host':'attacker.example'}).status_code,403);self.assertEqual(self.c.post('/api/rescan',headers=self.headers|{'Origin':'https://attacker.example'}).status_code,403)
  def test_wave_and_atomic_save(self):

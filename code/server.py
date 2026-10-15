@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 from store import Store,Conflict
 import source
-VERSION='1.0.0-preview.1'
+VERSION='1.0.0-preview.2'
 PROJECT_URL='https://zaxptwjwbwossbueqqwt.supabase.co'
 
 class Desktop:
@@ -19,9 +19,13 @@ class Desktop:
   if not p:raise ValueError('Choose a local data folder first')
   return pathlib.Path(p)
  def scan(self):
-  root=self.root();self.inventory={'running':True,'files':[],'errors':[]};self.files={};self.opened={}
+  root=self.root();profile_errors=[]
+  try:self.discover_profile(root)
+  except (ValueError,OSError) as e:
+   self.store.set('dataset_profile',{});profile_errors=[{'path':'ep-dataset-profile.json','reason':'Profile not applied: '+str(e)}]
+  self.inventory={'running':True,'files':[],'errors':[]};self.files={};self.opened={}
   def work():
-   found=[];errors=[]
+   found=[];errors=profile_errors.copy()
    def walk_error(e):errors.append({'path':str(e.filename),'reason':type(e).__name__})
    for directory,dirs,files in os.walk(root,followlinks=False,onerror=walk_error):
     dirs[:]=sorted(x for x in dirs if not (pathlib.Path(directory)/x).is_symlink())
@@ -36,6 +40,13 @@ class Desktop:
     self.inventory={'running':True,'files':found.copy(),'errors':errors.copy()}
    self.inventory={'running':False,'files':found,'errors':errors}
   self.pool.submit(work)
+ def discover_profile(self,root):
+  path=pathlib.Path(root)/'ep-dataset-profile.json'
+  if not path.is_file():return
+  if path.is_symlink() or path.stat().st_size>2000000:raise ValueError('Dataset sidecar is invalid or too large')
+  p=json.loads(path.read_text());validate_profile(p)
+  # Coordinator-provided sidecar is data only; application requires content-hash match.
+  self.store.set('dataset_profile',p)
  def path(self,id):
   if id not in self.files:raise ValueError('File is not in this folder inventory')
   return source.resolve(self.root(),self.files[id])

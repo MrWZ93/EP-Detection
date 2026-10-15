@@ -6,4 +6,4 @@ pyz=PYZ(a.pure)
 exe=EXE(pyz,a.scripts,[],exclude_binaries=True,name='EP Desktop',debug=False,bootloader_ignore_signals=False,strip=False,upx=False,console=False,target_arch='arm64' if __import__('sys').platform=='darwin' else None,codesign_identity=None,entitlements_file=None)
 coll=COLLECT(exe,a.binaries,a.datas,strip=False,upx=False,name='EP Desktop')
 if __import__('sys').platform=='darwin':
- app=BUNDLE(coll,name='EP Desktop.app',icon=None,bundle_identifier='org.epstudy.desktop',info_plist={'CFBundleShortVersionString':'1.0.0','CFBundleVersion':'1','NSHighResolutionCapable':True,'NSHumanReadableCopyright':'EP Detection project'})
+ app=BUNDLE(coll,name='EP Desktop.app',icon=None,bundle_identifier='org.epstudy.desktop',info_plist={'CFBundleShortVersionString':'1.0.0','CFBundleVersion':'2','NSHighResolutionCapable':True,'NSHumanReadableCopyright':'EP Detection project'})

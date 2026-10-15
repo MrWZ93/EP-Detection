@@ -91,7 +91,7 @@ class Store:
     return {'id':op,'revision':old['revision'],'local_saved':True}
    if type(base)is not int or base!=a['revision']:raise Conflict('A newer revision exists. Keep this draft and reload before resolving.')
    rev=base+1;now=time.time();d.execute('INSERT INTO events VALUES(?,?,?,?,?,?)',(op,id,rev,encoded(payload),bool(final),now));d.execute('UPDATE assessments SET revision=? WHERE id=?',(rev,id))
-   body={'operation_id':op,'assessment_id':id,'base_revision':base,'revision':rev,'source_id':f['id'],'source_sha256':f['sha'],'relative_path':f['relative'],'sample_count':meta['n'],'sample_rate':payload.get('sample_rate') or meta['fs'],'annotation':payload,'submitted':bool(final),'reviewer_name':self.get('name:'+owner,''),'client_version':'1.0.0-preview.1'}
+   body={'operation_id':op,'assessment_id':id,'base_revision':base,'revision':rev,'source_id':f['id'],'source_sha256':f['sha'],'relative_path':f['relative'],'sample_count':meta['n'],'sample_rate':payload.get('sample_rate') or meta['fs'],'annotation':payload,'submitted':bool(final),'reviewer_name':self.get('name:'+owner,''),'client_version':'1.0.0-preview.2'}
    d.execute('INSERT INTO outbox(id,owner,body) VALUES(?,?,?)',(op,owner,encoded(body)))
   return {'id':op,'revision':rev,'local_saved':True}
  def pending(self,owner):

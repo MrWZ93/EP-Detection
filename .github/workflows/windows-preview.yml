@@ -1,10 +1,11 @@
-name: Windows build candidate (manual, not a validated release)
+name: Windows packaged acceptance
 on: workflow_dispatch
 permissions:
   contents: read
 jobs:
   build:
     runs-on: windows-2022
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -13,14 +14,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: python -m pip install -r requirements.in
+      - run: python -m pip install --require-hashes -r requirements-windows.lock
       - run: npm ci --ignore-scripts
       - run: npm run build
       - run: python -m unittest discover -s tests -v
       - run: npm test
+      - run: python code/notices.py
       - run: python -m PyInstaller --noconfirm EPDesktop.spec
-      - run: '& "dist/EP Desktop/EP Desktop.exe" --self-test'
+      - name: Packaged self-test
+        run: '& "dist/EP Desktop/EP Desktop.exe" --self-test'
+      - run: npx playwright install chromium
+      - name: Create isolated synthetic recordings
+        run: python tests/prepare_browser.py "${{ runner.temp }}/ep-browser"
+      - name: Packaged HTTP, browser and restart acceptance
+        env:
+          EP_BROWSER_FIXTURE: ${{ runner.temp }}/ep-browser
+          EP_PACKAGED_EXE: ${{ github.workspace }}/dist/EP Desktop/EP Desktop.exe
+        run: node tests/browser_acceptance.cjs
+      - name: Archive portable program and evidence
+        run: |
+          New-Item -ItemType Directory -Force release
+          Compress-Archive -Path 'dist/EP Desktop' -DestinationPath 'release/EP-Desktop-1.0.0-preview.2-Windows-x64.zip'
+          $digest = (Get-FileHash 'release/EP-Desktop-1.0.0-preview.2-Windows-x64.zip' -Algorithm SHA256).Hash.ToLower()
+          "$digest  EP-Desktop-1.0.0-preview.2-Windows-x64.zip" | Set-Content -Encoding ascii release/SHA256SUMS-Windows.txt
+          Copy-Item '${{ runner.temp }}/ep-browser/browser-result.json' release/Windows-browser-verification.json
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-candidate-GUI-unverified
-          path: dist/EP Desktop/
+          name: Windows-1.0.0-preview.2-validated-package
+          path: release/
+          retention-days: 14
