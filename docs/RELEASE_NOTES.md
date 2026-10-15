@@ -1,3 +1,7 @@
+# 1.0.0-preview.3 — cloud schema maintenance
+
+Source/SQL-only maintenance. See [security changes and deployment boundaries](CLOUD_SECURITY_PREVIEW3.md). Existing installers are unchanged; older release SQL must not be deployed. Live Supabase remains unconfigured.
+
 # 1.0.0-preview.2 — Windows local preview
 
 Portable Windows x64 program. Extract the entire EP Desktop folder and open EP Desktop.exe. Reviewers do not install Python, packages, or a database.

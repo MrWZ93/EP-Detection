@@ -1,3 +1,9 @@
+# Maintenance preview.3 verification
+
+42 Python tests passed with zero skips, including 17 real PostgreSQL security/RPC tests. Six DOM tests passed. The single migration additionally passed late-collision rollback, existing-object preservation and repeat-refusal checks. PostgreSQL 16.15 and psycopg 3.3.6; synthetic local identities only. One existing Starlette test-client deprecation warning was emitted. See [machine-readable evidence](verification-preview3.json).
+
+The simplified tutorial was checked in real Chromium at 1280×900, 390×844 and 320×700: download visible above the fold, no horizontal overflow, four ordered steps and working disclosure controls. Desktop/mobile screenshots were visually inspected. The separate 11-section training guide includes seven numbered/arrowed screenshots captured from the packaged preview.2 application using only synthetic TDMS, with external browser requests blocked. Its six UI files match Windows runtime source commit 07fbfb22efa73325953cfc0a58362895d1ad982f. Yes/No, zoom, add/drag boundaries, stage labels, saves and restart recovery were exercised. All images, anchors and enlargement links passed at the three viewport widths; mobile screenshots were visually inspected. Native Windows screenshots are not claimed. No application installer was rebuilt. Live Supabase/Auth and native OS acceptance remain unverified.
+
 # Verification — 1.0.0-preview.2
 
 Locally executed on Apple Silicon macOS:

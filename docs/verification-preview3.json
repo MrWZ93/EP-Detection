@@ -1,0 +1,64 @@
+{
+  "release": "1.0.0-preview.3",
+  "scope": "cloud SQL and documentation only; existing application installers unchanged",
+  "python_tests": 42,
+  "sql_tests_included": 17,
+  "python_skipped": 0,
+  "dom_tests": 6,
+  "postgres": "16.15",
+  "psycopg": "3.3.6",
+  "migration": "supabase/migrations/20261015035952_ep_cloud_security_preview3.sql",
+  "migration_sha256": "48395a2e931285c607c872335e5a5196108237191903efe266ac12d824a90934",
+  "checks": [
+    "revoked reviewer read/write denial",
+    "revoked admin denial",
+    "hostile default ACLs",
+    "no exposed SECURITY DEFINER",
+    "immutable revisions and decisions",
+    "actual desktop adjudication payload",
+    "finite numeric and required-field rejection",
+    "same-operation concurrent retry",
+    "concurrent base-revision conflict",
+    "both source-lock directions",
+    "stale decision snapshot rejection",
+    "serialized decision timestamp order",
+    "migration late-collision rollback and preservation",
+    "repeat migration refusal"
+  ],
+  "remote_deployed": false,
+  "auth_changed": false,
+  "live_advisors_run": false,
+  "known_warning": "Starlette HTTP test-client deprecation warning; no test failures",
+  "tutorial_layouts": [
+    {
+      "width": 1280,
+      "height": 900
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 700
+    }
+  ],
+  "tutorial_horizontal_overflow": false,
+  "tutorial_download_above_fold": true,
+  "illustrated_guide": {
+    "sections": 11,
+    "screenshots": 7,
+    "synthetic_only": true,
+    "capture_platform": "macOS packaged preview.2",
+    "windows_runtime_source_commit": "07fbfb22efa73325953cfc0a58362895d1ad982f",
+    "ui_files_match_windows_source": true,
+    "native_windows_screenshots": false,
+    "restart_recovery_verified": true,
+    "image_enlargement_verified": true,
+    "layouts_verified": [
+      1280,
+      390,
+      320
+    ]
+  }
+}

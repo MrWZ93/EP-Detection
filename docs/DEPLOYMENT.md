@@ -13,7 +13,7 @@
 
 Live Supabase tables, membership grants, auth configuration and publishable key have not been installed. No real study login or synchronization has been demonstrated. The configured project URL is public configuration, not a credential. Empty publishable_key intentionally disables login. No service-role key is accepted or bundled.
 
-A coordinator with authorization must review/apply cloud/001_ep_desktop.sql and 002_adjudication.sql to the EP project, create/invite study accounts, explicitly insert members and administrator roles, configure email OTP or Google and the exact loopback redirect http://127.0.0.1:8780/, and supply only a public publishable key in cloud_config.json before rebuilding. Reviewers do not perform these steps. Adding roles is an administrative action, never a client-side name setting.
+Do not deploy the SQL from preview.1 or preview.2. A coordinator with authorization must review/apply the single fresh-install migration documented in [CLOUD_SECURITY_PREVIEW3.md](CLOUD_SECURITY_PREVIEW3.md) to the EP project, create/invite study accounts, explicitly insert members and administrator roles, configure email OTP or Google and the exact loopback redirect http://127.0.0.1:8780/, and supply only a public publishable key in cloud_config.json before rebuilding. Reviewers do not perform these steps. Adding roles is an administrative action, never a client-side name setting.
 
 Schema scripts intentionally fail if their tables already exist: inspect/migrate existing data instead of replacing it. There is no destructive reset command. Back up the project before migrations. The scripts do not touch unrelated application schemas.
 

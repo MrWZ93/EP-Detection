@@ -1,10 +1,13 @@
 # EP Desktop
 
+**Cloud schema maintenance preview.3:** [security fixes, exact migration and verification](docs/CLOUD_SECURITY_PREVIEW3.md). Do not deploy cloud SQL from preview.1/preview.2. Existing installers remain local previews; no remote deployment or Auth setup is claimed.
+
 Local TDMS review with an English browser interface. Python and dependencies are bundled in the Mac application. Raw recordings stay on the reviewer's computer; only annotations, relative source context, hashes, and progress are designed to sync to the EP study.
 
 **1.0.0-preview.2 is a Windows x64 local preview. Live Supabase login/sync is not configured.** The portable Windows executable was built and tested on Windows, including self-test, HTTP, real Chromium Yes/No review, boundary drag/zoom/add and process restart recovery. Reviewers do not install Python. Explorer/SmartScreen/native folder-dialog checks remain manual, and the app is not code-signed. The earlier Mac preview is retained separately.
 
 - [English download and tutorial](https://mrwz93.github.io/EP-Detection/)
+- [Illustrated training guide](https://mrwz93.github.io/EP-Detection/guide.html)
 - [Releases](https://github.com/MrWZ93/EP-Detection/releases)
 - [Release notes](docs/RELEASE_NOTES.md)
 - [Deployment and verification boundaries](docs/DEPLOYMENT.md)
