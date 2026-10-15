@@ -1,0 +1,14 @@
+.venv/
+node_modules/
+build/
+dist/
+release/
+__pycache__/
+*.pyc
+*.sqlite*
+*.tdms
+*.tdms_index
+*.log
+.env*
+local_evidence/
+docs/real_data_local_check.json

@@ -1,0 +1,45 @@
+BEGIN;
+CREATE TABLE public.ep_decisions(operation_id uuid PRIMARY KEY,source_id text NOT NULL,actor uuid NOT NULL REFERENCES auth.users(id),payload jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE public.ep_decisions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.ep_decisions FROM anon,authenticated;
+GRANT SELECT ON public.ep_decisions TO authenticated;
+CREATE POLICY admins_read_decisions ON public.ep_decisions FOR SELECT TO authenticated USING(public.ep_is_admin());
+CREATE TRIGGER ep_decision_immutable BEFORE UPDATE OR DELETE ON public.ep_decisions FOR EACH ROW EXECUTE FUNCTION public.ep_immutable_revision();
+CREATE FUNCTION public.ep_save_decision(p jsonb) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+DECLARE old public.ep_decisions; selected public.ep_revisions; previous uuid; ids jsonb; kind text; t jsonb; boundary bigint; sample bigint; n bigint;
+BEGIN
+ IF NOT public.ep_is_admin() THEN RAISE EXCEPTION 'Administrator required' USING ERRCODE='42501';END IF;
+ IF length(trim(p->>'reason'))=0 OR p->>'reason' IS NULL OR octet_length(p::text)>1000000 THEN RAISE EXCEPTION 'Rationale required';END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended(p->>'source_id',0));
+ SELECT * INTO old FROM public.ep_decisions WHERE operation_id=(p->>'operation_id')::uuid;
+ IF FOUND THEN
+  IF old.actor<>auth.uid() OR old.payload<>p THEN RAISE EXCEPTION 'Decision ID collision' USING ERRCODE='23505';END IF;
+  RETURN jsonb_build_object('operation_id',old.operation_id);
+ END IF;
+ SELECT * INTO selected FROM public.ep_revisions WHERE operation_id=(p->>'selected_revision_id')::uuid;
+ IF NOT FOUND OR selected.payload->>'source_id'<>p->>'source_id' OR selected.payload->>'source_sha256'<>p->>'source_sha256' OR NOT (selected.payload->>'submitted')::boolean OR selected.payload->'annotation'->>'decision'<>'yes' THEN RAISE EXCEPTION 'Invalid selected review';END IF;
+ SELECT jsonb_agg(operation_id::text ORDER BY operation_id::text) INTO ids FROM public.ep_revisions WHERE payload->>'source_id'=p->>'source_id';
+ IF ids IS DISTINCT FROM p->'observed_revision_ids' THEN RAISE EXCEPTION 'Reviews changed' USING ERRCODE='23505';END IF;
+ SELECT operation_id INTO previous FROM public.ep_decisions WHERE source_id=p->>'source_id' ORDER BY created_at DESC,operation_id DESC LIMIT 1;
+ IF previous IS DISTINCT FROM (p->>'supersedes')::uuid THEN RAISE EXCEPTION 'Decision changed' USING ERRCODE='23505';END IF;
+ n:=(selected.payload->>'sample_count')::bigint;
+ FOREACH kind IN ARRAY ARRAY['EV','BV'] LOOP
+  t:=p->'thresholds'->kind;
+  IF t->>'status' IS NULL OR t->>'status' NOT IN ('include','missing','censored','saturated','calibration_unknown','definition_unconfirmed','exclude') THEN RAISE EXCEPTION 'Qualification required';END IF;
+  IF t->>'status'='include' THEN
+   IF (t->>'definition_confirmed')::boolean IS DISTINCT FROM true OR (t->>'calibration_confirmed')::boolean IS DISTINCT FROM true OR (t->>'edge_unobscured')::boolean IS DISTINCT FROM true OR (selected.payload->'annotation'->>'profile_confirmed')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'Confirmation required';END IF;
+   boundary:=(t->>'boundary_idx')::bigint;sample:=(t->>'sample_idx')::bigint;
+   IF boundary IS NULL OR sample IS NULL OR sample<0 OR sample>=n OR t->>'source_sha256'<>p->>'source_sha256' OR jsonb_typeof(t->'voltage_V') IS DISTINCT FROM 'number' OR t->>'edge' NOT IN ('start','end') OR t->>'stage' NOT IN ('S1','S2','S3','S4') THEN RAISE EXCEPTION 'Invalid boundary evidence';END IF;
+   IF sample<>boundary-(CASE WHEN t->>'edge'='end' THEN 1 ELSE 0 END) THEN RAISE EXCEPTION 'Invalid boundary sample';END IF;
+   -- Raw waveform is intentionally absent from cloud: voltage is an administrator's
+   -- attested exact local sample, never represented as server-verified raw evidence.
+   IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements_text(selected.payload->'annotation'->'partition'->'labels') WITH ORDINALITY AS l(value,pos) WHERE l.value=t->>'stage' AND (selected.payload->'annotation'->'partition'->'cuts'->>(CASE WHEN t->>'edge'='start' THEN l.pos-1 ELSE l.pos END)::integer)::bigint=boundary) THEN RAISE EXCEPTION 'Evidence does not match annotated boundary';END IF;
+  END IF;
+ END LOOP;
+ IF p->'thresholds'->'EV'->>'status'='include' AND p->'thresholds'->'BV'->>'status'='include' AND (p->'thresholds'->'EV'->>'boundary_idx')::bigint>(p->'thresholds'->'BV'->>'boundary_idx')::bigint THEN RAISE EXCEPTION 'EV follows BV';END IF;
+ INSERT INTO public.ep_decisions VALUES((p->>'operation_id')::uuid,p->>'source_id',auth.uid(),p,now());
+ RETURN jsonb_build_object('operation_id',p->>'operation_id');
+END$$;
+REVOKE ALL ON FUNCTION public.ep_save_decision(jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.ep_save_decision(jsonb) TO authenticated;
+COMMIT;

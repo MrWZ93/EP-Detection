@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+numpy
+nptdms
+httpx
+pyinstaller
